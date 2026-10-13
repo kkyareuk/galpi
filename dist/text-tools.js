@@ -1,4 +1,6 @@
 export const FONT_PRESETS = {
+  kopub: {name:'KoPubWorld 바탕',family:'"KoPubWorld Batang", "Nanum Myeongjo", serif'},
+  kopubdotum: {name:'KoPubWorld 돋움',family:'"KoPubWorld Dotum", "Nanum Gothic", sans-serif'},
   serif: {name:'나눔명조', family:'"Nanum Myeongjo", Georgia, serif'},
   sans: {name:'나눔고딕', family:'"Nanum Gothic", sans-serif'},
   batang: {name:'고운바탕', family:'"Gowun Batang", serif'},
@@ -6,7 +8,7 @@ export const FONT_PRESETS = {
   mono: {name:'고정폭', family:'"D2Coding", Consolas, monospace'},
   custom: {name:'내 폰트', family:'"GalpiCustom", "Nanum Myeongjo", serif'}
 };
-export const EFFECTS = {none:'효과 없음', tremble:'부들부들', float:'둥실둥실', pulse:'숨쉬기', fade:'희미하게'};
+export const EFFECTS = {none:'효과 없음', tremble:'부들부들', float:'둥실둥실', pulse:'숨쉬기', fade:'희미하게', neon:'네온사인', glow:'은은한 빛'};
 const escape = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export function cleanMarks(input,length){
   if(!Array.isArray(input))return [];
@@ -16,13 +18,14 @@ export function cleanMarks(input,length){
     const end=Math.max(0,Math.min(length,Math.trunc(Number(m.end))));
     if(!Number.isFinite(start)||!Number.isFinite(end)||start>=end)return [];
     const attrs={};
-    for(const k of ['bold','italic','underline'])if(typeof m.attrs?.[k]==='boolean')attrs[k]=m.attrs[k];
+    for(const k of ['bold','italic','underline','strike'])if(typeof m.attrs?.[k]==='boolean')attrs[k]=m.attrs[k];
     if(FONT_PRESETS[m.attrs?.font])attrs.font=m.attrs.font;
     if(EFFECTS[m.attrs?.effect])attrs.effect=m.attrs.effect;
     if(/^#[0-9a-f]{6}$/i.test(m.attrs?.color))attrs.color=m.attrs.color;
+    if(Number.isFinite(m.attrs?.px)&&m.attrs.px>=12&&m.attrs.px<=36)attrs.px=m.attrs.px;
     if([.85,1,1.2,1.5].includes(m.attrs?.size))attrs.size=m.attrs.size;
     if([1,2,3].includes(m.attrs?.intensity))attrs.intensity=m.attrs.intensity;
-    return [{start,end,attrs}];
+    return Object.keys(attrs).length?[{start,end,attrs}]:[];
   });
 }
 // Preserve ranges around an insertion/deletion without putting markup in the manuscript.
@@ -42,15 +45,18 @@ export function formatText(text,input){
   const marks=cleanMarks(input,text.length),edges=[...new Set([0,text.length,...marks.flatMap(m=>[m.start,m.end])])].sort((a,b)=>a-b);
   return edges.slice(0,-1).map((start,i)=>{
     const end=edges[i+1],attrs=Object.assign({},...marks.filter(m=>m.start<=start&&m.end>=end).map(m=>m.attrs));
+    if(!Object.keys(attrs).length)return escape(text.slice(start,end));
     const styles=[];if(attrs.bold!==undefined)styles.push('font-weight:'+(attrs.bold?700:400));
     if(attrs.italic!==undefined)styles.push('font-style:'+(attrs.italic?'italic':'normal'));
     if(attrs.underline!==undefined)styles.push('text-decoration:'+(attrs.underline?'underline':'none'));
+    if(attrs.strike!==undefined)styles.push('text-decoration:'+(attrs.strike?'line-through':attrs.underline?'underline':'none'));
+    if(attrs.px)styles.push('font-size:'+attrs.px+'px');
     if(attrs.color)styles.push('color:'+attrs.color);
     if(attrs.font)styles.push('font-family:'+escape(FONT_PRESETS[attrs.font].family));
-    if(attrs.size)styles.push('font-size:'+attrs.size+'em');
+    if(attrs.size&&!attrs.px)styles.push('font-size:'+attrs.size+'em');
     styles.push('--motion:'+(attrs.intensity||1)+'px');
     const cls=attrs.effect&&attrs.effect!=='none'?' fx fx-'+attrs.effect:'';
-    return `<span class="${cls}" style="${styles.join(';')}">${escape(text.slice(start,end))}</span>`;
+    return `<span data-galpi="${escape(JSON.stringify(attrs))}" class="${cls}" style="${styles.join(';')}">${escape(text.slice(start,end))}</span>`;
   }).join('');
 }
 export function clearMarks(input,start,end){return input.flatMap(m=>m.end<=start||m.start>=end?[m]:[{...m,end:Math.min(m.end,start)},{...m,start:Math.max(m.start,end)}].filter(x=>x.start<x.end))}
