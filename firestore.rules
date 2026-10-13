@@ -1,0 +1,17 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Preserve the project's existing default-deny rule.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    // Each signed-in author can access only their own Galpi library.
+    match /users/{userId}/galpiSeries/{seriesId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      match /chapters/{chapterId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId;
+      }
+    }
+  }
+}

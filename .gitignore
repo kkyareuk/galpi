@@ -4,3 +4,7 @@ node_modules/
 *.tar.gz
 .sites-runtime/
 .sites-checkout/
+.firebase-admin/
+.firebase/
+firebase-debug.log
+firebase-debug.*.log

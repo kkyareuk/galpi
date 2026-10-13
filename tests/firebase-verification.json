@@ -1,0 +1,94 @@
+{
+  "date": "2026-10-14",
+  "project": "kkyareuk",
+  "deployedRulesMatchLocal": true,
+  "cases": [
+    {
+      "resource": "series",
+      "method": "get",
+      "actor": "owner",
+      "expected": "ALLOW",
+      "state": "SUCCESS"
+    },
+    {
+      "resource": "series",
+      "method": "get",
+      "actor": "other",
+      "expected": "DENY",
+      "state": "SUCCESS"
+    },
+    {
+      "resource": "series",
+      "method": "get",
+      "actor": "anonymous",
+      "expected": "DENY",
+      "state": "SUCCESS"
+    },
+    {
+      "resource": "series",
+      "method": "create",
+      "actor": "owner",
+      "expected": "ALLOW",
+      "state": "SUCCESS"
+    },
+    {
+      "resource": "series",
+      "method": "create",
+      "actor": "other",
+      "expected": "DENY",
+      "state": "SUCCESS"
+    },
+    {
+      "resource": "series",
+      "method": "create",
+      "actor": "anonymous",
+      "expected": "DENY",
+      "state": "SUCCESS"
+    },
+    {
+      "resource": "chapter",
+      "method": "get",
+      "actor": "owner",
+      "expected": "ALLOW",
+      "state": "SUCCESS"
+    },
+    {
+      "resource": "chapter",
+      "method": "get",
+      "actor": "other",
+      "expected": "DENY",
+      "state": "SUCCESS"
+    },
+    {
+      "resource": "chapter",
+      "method": "get",
+      "actor": "anonymous",
+      "expected": "DENY",
+      "state": "SUCCESS"
+    },
+    {
+      "resource": "chapter",
+      "method": "create",
+      "actor": "owner",
+      "expected": "ALLOW",
+      "state": "SUCCESS"
+    },
+    {
+      "resource": "chapter",
+      "method": "create",
+      "actor": "other",
+      "expected": "DENY",
+      "state": "SUCCESS"
+    },
+    {
+      "resource": "chapter",
+      "method": "create",
+      "actor": "anonymous",
+      "expected": "DENY",
+      "state": "SUCCESS"
+    }
+  ],
+  "googleProviderEnabled": true,
+  "authorizedSiteDomain": "galpi-fiction-library.kkyareuk.chatgpt.site",
+  "browserOAuthCompletion": "not_verified"
+}
