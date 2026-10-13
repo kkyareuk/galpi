@@ -1,0 +1,8 @@
+// 기존 프로젝트 규칙을 교체하지 말고, 아래 match 블록만
+// service cloud.firestore > match /databases/{database}/documents 안에 추가하세요.
+match /users/{userId}/galpiSeries/{seriesId} {
+  allow read, write: if request.auth != null && request.auth.uid == userId;
+  match /chapters/{chapterId} {
+    allow read, write: if request.auth != null && request.auth.uid == userId;
+  }
+}
