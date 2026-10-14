@@ -4,7 +4,8 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 test('install manifest uses valid square PNG icons and standalone scope',()=>{
  const manifest=JSON.parse(fs.readFileSync(new URL('../dist/manifest.webmanifest',import.meta.url)));
- assert.equal(manifest.display,'standalone');assert.equal(manifest.scope,'/');
+ assert.equal(manifest.display,'standalone');assert.equal(manifest.scope,'./');assert.equal(manifest.start_url,'./');assert.equal(manifest.id,'./');
+ for(const base of ['https://galpi.test/','https://galpi.test/galpi/'])assert.equal(new URL(manifest.start_url,base).href,base);
  for(const icon of manifest.icons){const image=fs.readFileSync(new URL('../dist/'+icon.src,import.meta.url));const size=+icon.sizes.split('x')[0];assert.equal(image.readUInt32BE(16),size);assert.equal(image.readUInt32BE(20),size)}
 });
 test('offline cache includes application modules and excludes authentication and private requests',async()=>{
