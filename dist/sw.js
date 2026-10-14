@@ -1,6 +1,6 @@
 const BASE=new URL('./',self.location.href);
 const PREFIX='galpi-shell-'+BASE.pathname+'-';
-const CACHE=PREFIX+'v0.6.0';
+const CACHE=PREFIX+'v0.6.0-r1';
 const FILES=['./','./index.html','./style.css','./app.js','./appearance.js','./library-model.js','./textures/cotton.jpg','./textures/ruled.jpg','./textures/vintage.jpg','./textures/black.jpg','./editor.js','./rich-editor.js','./editor-selection.js','./text-tools.js','./manuscript.js','./manuscript-worker.js','./media.js','./install.js','./practice.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES.map(path=>new Request(new URL(path,BASE),{cache:'reload'})))).then(()=>self.skipWaiting())));
 // Activate new routing immediately, but never reload an open editor.
