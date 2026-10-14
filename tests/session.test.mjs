@@ -25,7 +25,7 @@ async function boot(hash='library'){
 test('cached account library appears before auth and remains readable when signed out',async()=>{
  const {w,dom,auth}=await boot();assert.match(w.document.querySelector('#app').textContent,/저장된 소설/);
  w.document.querySelector('#new-series').click();assert.match(w.document.querySelector('#modal').textContent,/글을 쓰려면 로그인/);
- await auth(null);assert.match(w.document.querySelector('#app').textContent,/저장된 소설/);assert.equal(w.localStorage.getItem('galpi-last-owner'),'owner');assert.ok(!w.document.querySelector('#app').inert);dom.window.close();
+ await auth(null);assert.equal(w.document.querySelector('#modal').open,true);assert.match(w.document.querySelector('#app').textContent,/저장된 소설/);assert.equal(w.localStorage.getItem('galpi-last-owner'),'owner');assert.ok(!w.document.querySelector('#app').inert);dom.window.close();
 });
 test('slow cloud fetch never locks reader or replaces the displayed chapter after auth restores',async()=>{
  const {w,dom,auth,remote}=await boot('read/b/c');const reader=w.document.querySelector('.reader');assert.match(reader.textContent,/기기에 보관된 본문/);

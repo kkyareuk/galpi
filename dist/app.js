@@ -36,13 +36,13 @@ async function saveBook(b,ch){if(!user||!books.includes(b)){toast('계정이 바
 async function syncDirty(){if(!firebase||!user||!cloudReady||syncing||!dirty.size)return;syncing=true;status('동기화 중…');let failed=false;for(const [key,entry] of [...dirty]){if(entry.owner!==user?.uid)continue;const {b,ch}=entry;const p=(async()=>{const {chapters,sample,...meta}=b;await firebase.setDoc(firebase.doc(firebase.db,'users',entry.owner,'galpiSeries',b.id),meta);if(ch)await firebase.setDoc(firebase.doc(firebase.db,'users',entry.owner,'galpiSeries',b.id,'chapters',ch.id),{...ch,order:b.chapters.findIndex(c=>c.id===ch.id)})})();cloudWrites.add(p);try{await p;if(dirty.get(key)===entry)dirty.delete(key)}catch(e){failed=true;status('기기 저장됨 · 클라우드 연결 확인 필요');toast(firebaseError(e));break}finally{cloudWrites.delete(p)}}syncing=false;if(!failed)status(dirty.size?'동기화 대기':'Google 계정에 저장됨');if(!failed&&dirty.size)cloudTimer=setTimeout(syncDirty,1800)}
 function firebaseError(e){return ({'auth/unauthorized-domain':'Firebase 인증 설정에 현재 사이트 도메인을 추가해 주세요.','auth/operation-not-allowed':'Firebase Authentication에서 Google 로그인을 활성화해 주세요.','auth/popup-blocked':'팝업이 차단됐어요. 브라우저에서 팝업을 허용해 주세요.','auth/popup-closed-by-user':'로그인 창이 닫혔어요.','permission-denied':'Firestore 보안 규칙을 확인해 주세요. 원고는 이 기기에 저장되어 있어요.','auth/network-request-failed':'네트워크 연결을 확인해 주세요.','auth/timeout':'로그인 연결 시간이 초과됐어요. Chrome이나 Safari에서 사이트를 열어 다시 시도해 주세요.','auth/operation-not-supported-in-this-environment':'외부 브라우저에서 Google 로그인을 진행해 주세요.'})[e.code]||'연결을 완료하지 못했어요. Firebase 설정과 네트워크를 확인해 주세요.'}
 async function initFirebase(){try{const base='https://www.gstatic.com/firebasejs/12.4.0/';const [app,auth,fs]=await Promise.all([import(base+'firebase-app.js'),import(base+'firebase-auth.js'),import(base+'firebase-firestore.js')]);const instance=app.initializeApp({apiKey:'AIzaSyB9SWQzJrzxbT1aKquMyqz-Hvd1Ce87xZA',authDomain:'kkyareuk.firebaseapp.com',projectId:'kkyareuk',storageBucket:'kkyareuk.firebasestorage.app',messagingSenderId:'694440030853',appId:'1:694440030853:web:2b3f385d5e88977b20afec'});firebase={...auth,...fs,auth:auth.getAuth(instance),db:fs.getFirestore(instance)};const acceptAuth=async next=>{
- const epoch=++authEpoch,previousOwner=user?.uid||offlineOwner||'guest';
+ const epoch=++authEpoch,previousUser=user,previousOwner=user?.uid||offlineOwner||'guest';
  authBusy=true;await flush();if(epoch!==authEpoch)return;
  const owner=next?.uid||(explicitLogout?'guest':offlineOwner||previousOwner);
  const switched=owner!==previousOwner;
  user=next;offlineOwner=owner==='guest'?null:owner;explicitLogout=false;cloudReady=false;
  if(next)localStorage.setItem('galpi-last-owner',next.uid);
- if(!next)$('#modal').close();
+ if(!next&&previousUser)$('#modal').close();
  if(switched){dirty.clear();$('#modal').close();await loadLocal();if(epoch!==authEpoch)return}
  authBusy=false;
  $('#account-name').innerHTML=next?esc(next.displayName||'나의 계정')+'<small>로그인 유지 중</small>':'Google로 로그인<small>저장된 글은 바로 읽기</small>';
