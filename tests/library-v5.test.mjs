@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
 import fs from 'node:fs';
-import {normalizeAppearance,applyPaper,paperPicker,bindPaperPicker,PAPERS} from '../dist/appearance.js';
+import {normalizeAppearance,applyPaper,applyMotion,paperPicker,bindPaperPicker,PAPERS} from '../dist/appearance.js';
 import {liveChapters,groupedSeries,cleanCollection} from '../dist/library-model.js';
 test('legacy night settings cannot unexpectedly darken reading; only explicit black paper does',()=>{
  const doc=new JSDOM('<body class="dark"></body>').window.document;const prefs={dark:true,theme:'night'};
@@ -20,4 +20,16 @@ test('chapter trash preserves source and adult label through backup and restorat
 });
 test('series collections follow part order without changing source series order',()=>{
  const books=[{id:'b',collection:{id:'g',title:'3부작',order:2}},{id:'a',collection:{id:'g',title:'3부작',order:0}},{id:'c',collection:{id:'g',title:'3부작',order:1}},{id:'solo'}];assert.deepEqual(groupedSeries(books)[0].books.map(b=>b.id),['a','c','b']);assert.equal(books[0].id,'b');books[0].collection=null;assert.equal(groupedSeries(books)[0].books.length,2);assert.equal(cleanCollection({id:2}),null);assert.equal(cleanCollection({id:'g',title:'t',order:-3}).order,0);
+});
+
+
+test('motion changes never alter paper, palette or color scheme across repeated reader visits',()=>{
+ for(const initial of [{},{dark:true},{motion:false},{paper:'black'},{paper:'vintage'}]){
+  const prefs={...initial},doc=new JSDOM('<body class="dark"></body>').window.document;
+  applyPaper(prefs,doc);const theme=doc.body.dataset.theme,texture=doc.body.style.getPropertyValue('--paper-texture'),scheme=doc.documentElement.style.colorScheme;
+  for(const motion of [undefined,false,true,false,true]){
+   prefs.motion=motion;applyMotion(prefs,doc);applyPaper(prefs,doc);applyMotion(prefs,doc);
+   assert.equal(doc.body.dataset.theme,theme);assert.equal(doc.documentElement.style.colorScheme,scheme);assert.equal(doc.body.style.getPropertyValue('--paper-texture'),texture);assert.equal(doc.body.classList.contains('motion-off'),motion===false);assert.equal(doc.body.classList.contains('dark'),false);
+  }
+ }
 });

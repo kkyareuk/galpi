@@ -13,10 +13,13 @@ export function normalizeAppearance(prefs){
 export function applyPaper(prefs,doc=document){
  normalizeAppearance(prefs);const paper=PAPERS[prefs.paper];
  doc.body.dataset.paper=prefs.paper;doc.body.dataset.theme=paper.theme;
- doc.body.classList.toggle('dark',paper.theme==='night');
+ doc.body.classList.remove('dark'); // Retire the old toggle-based night mode.
  // Request that mobile browsers retain the chosen light palette, even with OS dark mode.
  doc.documentElement.style.colorScheme=paper.theme==='night'?'dark':'only light';
  doc.body.style.setProperty('--paper-texture',paper.image?`url("${new URL('textures/'+paper.image+'.jpg',import.meta.url).href}")`:'none');
+}
+export function applyMotion(prefs,doc=document){
+ doc.body.classList.toggle('motion-off',prefs.motion===false);
 }
 const thumb=p=>p.image?`<img src="${new URL('textures/'+p.image+'.jpg',import.meta.url).href}" alt="" loading="lazy">`:'<span class="plain-paper"></span>';
 export function paperPicker(selected){
