@@ -2,7 +2,7 @@ import {formatText,cleanMarks} from './text-tools.js';
 export const escapeHTML=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 export const safeImage=value=>typeof value==='string'&&value.length<=240000&&/^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(value)?value:'';
 export const orderedAUs=values=>[...new Set(['원작',...values.map(v=>v||'원작')])].sort((a,b)=>Number(!/^원작/.test(a))-Number(!/^원작/.test(b)));
-export function typography(value={}){const n=(key,def,min,max)=>Number.isFinite(Number(value[key]))?Math.max(min,Math.min(max,Number(value[key]))):def;return {size:n('size',17,12,36),line:n('line',1.6,1,2.5),letter:n('letter',0,-2,5),paragraph:n('paragraph',.65,0,3)}}
+export function typography(value={}){const n=(key,def,min,max)=>Number.isFinite(Number(value[key]))?Math.max(min,Math.min(max,Number(value[key]))):def;return {size:n('size',17,12,36),line:n('line',1.6,1,2.5),letter:n('letter',0,-2,5),paragraph:n('paragraph',.65,0,3),indent:n('indent',1,0,4)}}
 export function normalizeImport(buffer,encoding='auto'){
  const bytes=new Uint8Array(buffer);let decoder=encoding;
  if(encoding==='auto'){decoder=bytes[0]===255&&bytes[1]===254?'utf-16le':bytes[0]===254&&bytes[1]===255?'utf-16be':'utf-8';try{new TextDecoder(decoder,{fatal:true}).decode(bytes)}catch{decoder='euc-kr'}}

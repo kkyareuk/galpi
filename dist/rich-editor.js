@@ -7,6 +7,7 @@ export function serializeEditor(root){
  function walk(node){
   if(node.nodeType===3){append(node.nodeValue);return}
   if(node.nodeType!==1)return;
+  if(node.hasAttribute('data-editor-ui'))return;
   const tag=node.tagName;
   if(node.classList.contains('dialogue-block')){boundary();append(':::dialogue '+node.dataset.person+'\n');for(const child of node.querySelector('.dialogue-body').childNodes)walk(child);boundary();append(':::\n\n');return}
   if(tag==='BR'){append(node.closest('blockquote')?'\n> ':'\n');return}

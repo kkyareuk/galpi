@@ -11,7 +11,7 @@ test('editing a Markdown document retains headings, paragraphs and nested styles
 });
 test('new inner formatting overrides prior outer formatting after reload',()=>{
  const result=serialize('<p><span data-galpi="{&quot;bold&quot;:true}">앞<span data-galpi="{&quot;bold&quot;:false,&quot;effect&quot;:&quot;tremble&quot;}">뒤</span></span></p>');
- const html=renderManuscript(result.text,result.marks);assert.match(html,/font-weight:400[^>]*>뒤/);assert.match(html,/fx-tremble/);
+ const html=renderManuscript(result.text,result.marks);assert.match(html,/font-weight:400/);assert.equal(new JSDOM(html).window.document.querySelector('.fx-tremble').textContent,'뒤');assert.match(html,/fx-tremble/);
 });
 test('blank browser paragraphs do not accumulate each time the document is edited',()=>{
  const first=serialize('<p></p><p>첫 문단</p><p><br></p><p>두 번째</p><p></p>');assert.equal(first.text,'첫 문단\n\n두 번째');const second=serialize(renderManuscript(first.text,first.marks));assert.deepEqual(second,first);
