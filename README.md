@@ -4,7 +4,7 @@
 
 ## 주소와 접근
 
-https://galpi-fiction-library.kkyareuk.chatgpt.site
+https://kkyareuk.github.io/galpi/
 
 사이트는 공개이며 ChatGPT 로그인 없이 방문할 수 있습니다. Google 로그인 전에는 이 브라우저에 원고를 저장하고, 로그인 후에는 본인 계정의 원고를 불러옵니다. 작품을 다른 사람에게 공개하는 기능은 아닙니다.
 
