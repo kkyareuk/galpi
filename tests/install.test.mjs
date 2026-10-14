@@ -27,3 +27,11 @@ test('project subpath caches fonts and only removes caches belonging to its scop
  listeners.fetch({request:{url:'https://galpi.test/galpi/fonts/KoPubWorld-Batang-Medium.woff2',method:'GET',mode:'cors'},respondWith:p=>response=p});assert.deepEqual(await response,{font:true});
  response=undefined;listeners.fetch({request:{url:'https://galpi.test/another/fonts/test.woff2',method:'GET',mode:'cors'},respondWith:p=>response=p});assert.equal(response,undefined);
 });
+
+test('requested update does not activate while another app window remains open',async()=>{
+ const listeners={};let windows=[{url:'https://galpi.test/galpi/'},{url:'https://galpi.test/galpi/#edit'}],activated=0,message;
+ const context={URL,self:{location:{origin:'https://galpi.test',href:'https://galpi.test/galpi/sw.js'},addEventListener:(name,fn)=>listeners[name]=fn,clients:{matchAll:async()=>windows},skipWaiting:async()=>activated++}};
+ vm.runInNewContext(fs.readFileSync(new URL('../dist/sw.js',import.meta.url),'utf8'),context);
+ const event={data:{type:'ACTIVATE_IF_ALONE'},source:{postMessage:m=>message=m.type},waitUntil:p=>p};
+ await listeners.message(event);assert.equal(activated,0);assert.equal(message,'UPDATE_BUSY');windows=[windows[0]];await listeners.message(event);assert.equal(activated,1);
+});
