@@ -18,3 +18,12 @@ test('offline cache includes application modules and excludes authentication and
  listeners.fetch(event('https://galpi.test/api/private'));assert.equal(response,undefined);
  listeners.fetch(event('https://galpi.test/','navigate'));assert.deepEqual(await response,{cached:true});
 });
+
+test('project subpath caches fonts and only removes caches belonging to its scope',async()=>{
+ const listeners={},removed=[];let response;const code=fs.readFileSync(new URL('../dist/sw.js',import.meta.url),'utf8');
+ const context={URL,self:{location:{origin:'https://galpi.test',href:'https://galpi.test/galpi/sw.js'},addEventListener:(name,fn)=>listeners[name]=fn,clients:{claim:async()=>{}}},caches:{keys:async()=>['galpi-shell-/galpi/-v0.3.0','galpi-shell-/another/-v0.3.0'],delete:async key=>removed.push(key),open:async()=>({match:async()=>({font:true})}),match:async()=>({shell:true})}};
+ vm.runInNewContext(code,context);
+ await listeners.activate({waitUntil:p=>p});assert.deepEqual(removed,['galpi-shell-/galpi/-v0.3.0']);
+ listeners.fetch({request:{url:'https://galpi.test/galpi/fonts/KoPubWorld-Batang-Medium.woff2',method:'GET',mode:'cors'},respondWith:p=>response=p});assert.deepEqual(await response,{font:true});
+ response=undefined;listeners.fetch({request:{url:'https://galpi.test/another/fonts/test.woff2',method:'GET',mode:'cors'},respondWith:p=>response=p});assert.equal(response,undefined);
+});
