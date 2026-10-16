@@ -1,0 +1,6 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {publishedChapters,draftChapters,saveChapterState} from '../dist/library-model.js';
+test('legacy chapters remain readable while drafts and deleted chapters are excluded',()=>{const b={chapters:[{id:'old'},{id:'ready',draft:false},{id:'draft',draft:true},{id:'trash',draft:true,deleted:true}]};assert.deepEqual(publishedChapters(b).map(c=>c.id),['old','ready']);assert.deepEqual(draftChapters(b).map(c=>c.id),['draft'])});
+test('draft save and publish persist state and content through backup round trip',async()=>{let stored;const c={text:'원고 본문',marks:[{start:0,end:2,attrs:{bold:true}}],draft:true};const save=async()=>{stored=JSON.stringify(c);return true};assert.equal(await saveChapterState(c,false,save),true);assert.equal(JSON.parse(stored).draft,false);assert.equal(await saveChapterState(c,true,save),true);assert.deepEqual(JSON.parse(stored),c)});
+test('failed publication retains draft status and manuscript',async()=>{const c={draft:true,text:'보존할 원고'};assert.equal(await saveChapterState(c,false,async()=>false),false);assert.equal(c.draft,true);assert.equal(c.text,'보존할 원고');assert.equal(await saveChapterState(c,false,async()=>{throw Error('disk full')}),false);assert.equal(c.draft,true)});

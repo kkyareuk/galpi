@@ -16,7 +16,7 @@ async function boot(hash='library'){
  let authCallback,resolveRemote;const remote=new Promise(resolve=>resolveRemote=resolve);
  const fakeAuth={signOut:async()=>authCallback(null),getAuth:()=>({currentUser:null}),onAuthStateChanged:(_auth,cb)=>authCallback=cb};
  const fakeStore={getFirestore:()=>({}),collection:(_db,...path)=>path.join('/'),getDocs:()=>remote,doc:()=>({}),setDoc:async()=>{}};
- Object.assign(w,text,manuscript,model,{indexedDB:idb,structuredClone,scrollTo:()=>{},requestAnimationFrame:fn=>fn(),setupInstall:()=>{},checkForUpdate:()=>{},stepper,bindSteppers:()=>{},setTypography:()=>{},manuscriptJob:async({text})=>'<p>'+text+'</p>',applyPaper:p=>appearance.applyPaper(p,w.document),applyMotion:p=>appearance.applyMotion(p,w.document),normalizeAppearance:appearance.normalizeAppearance,paperPicker:appearance.paperPicker,bindPaperPicker:appearance.bindPaperPicker,__loadFirebase:async path=>path.includes('firebase-app')?{initializeApp:()=>({})}:path.includes('firebase-auth')?fakeAuth:fakeStore});
+ Object.assign(w,text,manuscript,model,{mountEditor:(root,b,c,api)=>{w.editorTest={b,c,api};root.innerHTML='<div id="draft-status"></div>'},indexedDB:idb,structuredClone,scrollTo:()=>{},requestAnimationFrame:fn=>fn(),setupInstall:()=>{},checkForUpdate:()=>{},stepper,bindSteppers:()=>{},setTypography:()=>{},manuscriptJob:async({text})=>'<p>'+text+'</p>',applyPaper:p=>appearance.applyPaper(p,w.document),applyMotion:p=>appearance.applyMotion(p,w.document),normalizeAppearance:appearance.normalizeAppearance,paperPicker:appearance.paperPicker,bindPaperPicker:appearance.bindPaperPicker,__loadFirebase:async path=>path.includes('firebase-app')?{initializeApp:()=>({})}:path.includes('firebase-auth')?fakeAuth:fakeStore});
  w.HTMLDialogElement.prototype.showModal=function(){this.open=true};w.HTMLDialogElement.prototype.close=function(){this.open=false};
  const source=fs.readFileSync(new URL('../dist/app.js',import.meta.url),'utf8').replace(/^import .*;\r?$/gm,'').replaceAll('import(base+','__loadFirebase(base+');
  await w.eval('(async()=>{'+source+'})()');for(let n=0;n<10&&!authCallback;n++)await tick();
@@ -46,4 +46,16 @@ test('explicit logout stops reopening the account library without deleting its s
 test('switching Google accounts cannot carry the previous account library into the new account',async()=>{
  const {w,dom,auth,remote}=await boot();await auth({uid:'owner',displayName:'첫 계정'});await auth({uid:'another',displayName:'다른 계정'});await remote();
  assert.equal(w.localStorage.getItem('galpi-last-owner'),'another');assert.doesNotMatch(w.document.querySelector('#app').textContent,/저장된 소설/);dom.window.close();
+});
+
+
+test('new chapter remains a recoverable draft until explicitly published',async()=>{
+ const {w,dom,auth}=await boot('series/b');await auth({uid:'owner',displayName:'작성자'});
+ w.document.querySelector('#add-chapter').click();for(let n=0;n<12;n++)await tick();
+ const {b,c,api}=w.editorTest;assert.equal(c.draft,true);c.text='임시 원고';await api.saveState(true);
+ w.location.hash='series/b';for(let n=0;n<8;n++)await tick();assert.match(w.document.querySelector('#app').textContent,/임시저장/);
+ w.location.hash='read/b/c';for(let n=0;n<8;n++)await tick();assert.doesNotMatch(w.document.querySelector('.reader-toc').textContent,/2화/);
+ w.location.hash='edit/b/'+c.id;for(let n=0;n<8;n++)await tick();assert.equal(w.editorTest.c.text,'임시 원고');
+ assert.equal(await w.editorTest.api.saveState(false),true);
+ w.location.hash='read/b/c';for(let n=0;n<8;n++)await tick();assert.match(w.document.querySelector('.reader-toc').textContent,/2화/);dom.window.close();
 });

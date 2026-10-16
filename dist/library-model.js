@@ -8,3 +8,7 @@ export function cleanCollection(value){
  if(!value||typeof value.id!=='string'||typeof value.title!=='string')return null;
  return {id:value.id.slice(0,100),title:value.title.slice(0,80),order:Math.max(0,Math.min(999,Number(value.order)||0))};
 }
+
+export const publishedChapters=book=>liveChapters(book).filter(ch=>ch.draft!==true);
+export const draftChapters=book=>liveChapters(book).filter(ch=>ch.draft===true);
+export async function saveChapterState(chapter,draft,persist){const previous=chapter.draft;chapter.draft=draft;try{if(await persist()===false)throw Error('save failed');return true}catch{chapter.draft=previous;return false}}
